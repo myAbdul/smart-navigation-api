@@ -27,6 +27,7 @@ class DbTable {
         while($row = $query->fetch_array(MYSQLI_ASSOC)) {
             array_push($data, $row);
         }
+        $this->conn->close();
         return $data;
     }
     
@@ -68,9 +69,9 @@ class DbTable {
         try {
             $result = $this->conn->query($sql);
         } catch (Exception $ex) {
-            $error_msg = 'Could not insert records because an error occurred.';
-            return false;
+            $result = false;
         }
+        $this->conn->close();
         return $result;
     }
     

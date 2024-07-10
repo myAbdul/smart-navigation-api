@@ -6,6 +6,10 @@ use Slim\Factory\AppFactory;
 require __DIR__ . '/vendor/autoload.php';
 require_once 'include/models/User.php';
 require_once 'include/models/Facility.php';
+require_once 'include/models/College.php';
+require_once 'include/models/Department.php';
+require_once 'include/models/Program.php';
+require_once 'include/models/ClassSchedule.php';
 
 $app = AppFactory::create();
 
@@ -129,7 +133,7 @@ $app->post('/add_facility', function (Request $request, Response $response) {
 $app->get('/get_all_facilities', function (Request $request, Response $response) {
     $facility_model = new Facility();
 
-    $all_facilities = $facility_model->getAll();
+    $all_facilities = $facility_model->fetchAll();
 
     if ($all_facilities == null) {
         $all_facilities = array();
@@ -147,6 +151,71 @@ $app->get('/get_all_facilities', function (Request $request, Response $response)
     $response->getBody()->write($payload);
 
     return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->get('/get_class_schedule_form_data', function (Request $request, Response $response) {
+    $college_model = new College();
+    $department_model = new Department();
+    $program_model = new Program();
+
+    $all_colleges = $college_model->fetchAll();
+    $all_departments = $department_model->fetchAll();
+    $all_programs = $program_model->fetchAll();
+    $data = array (
+        "all_colleges" => $all_colleges,
+        "all_departments" => $all_departments,
+        "all_programs" => $all_programs
+    );
+    
+    $payload = json_encode($data);
+    $response->getBody()->write($payload);
+
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->post('/add_class_schedule', function (Request $request, Response $response) {
+    $request_body = $request->getParsedBody();
+
+    $department_id = $request_body["department_id"];
+    $program_name = $request_body["program_name"];
+    $course_name = $request_body["course_name"];
+    $day = $request_body["day"];
+    $time = $request_body["time"];
+
+    $program_model = new Program();
+    $program = $program_model->getProgram($program_name);
+    if(!$program){
+        $program_data = array(
+            "department_id" => $department_id,
+            "name" => $program_name
+        );
+        $program_id = $program_model->insertSingle($program_data);
+    } else {
+        $program_id = $program["program_id"];
+    }
+
+    if ($program_id == 0) {
+        return $response->withStatus(401, "Adding class schedule failed!");
+    }
+
+    $date_created = date("Y-m-d H:i:s");
+    $class_schedule_model = new ClassSchedule();
+    $class_schedule_data = array(
+        "program_id" => $program_id,
+        "course_name" => $course_name,
+        "day" => $day,
+        "time" => $time,
+        "date_created" => $date_created
+    );
+
+    $class_schedule_id = $class_schedule_model->insertSingle($class_schedule_data); 
+    if ($class_schedule_id == 0) {
+        return $response->withStatus(401, "Adding class schedule failed!");
+    } else {
+        $payload = json_encode(array("class_schedule_id" => $class_schedule_id));
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    } 
 });
 
 $app->run();

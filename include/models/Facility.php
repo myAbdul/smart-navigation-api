@@ -19,19 +19,4 @@ class Facility extends DbTable
         $this->conn->close();
         return $query;
     }
-
-    function getAll()
-    {
-        $this->connect();
-
-        $sql = "SELECT * FROM $this->table";
-        $query = $this->conn->query($sql);
-        $data = array();
-        while ($row = $query->fetch_array(MYSQLI_ASSOC)) {
-            array_push($data, $row);
-        }
-
-        $this->conn->close();
-        return $data;
-    }
 }
