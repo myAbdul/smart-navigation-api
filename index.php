@@ -55,7 +55,6 @@ $app->post('/register_user', function (Request $request, Response $response) {
     $data = array ("user_id" => $user_id);
     $payload = json_encode($data);
     $response->getBody()->write($payload);
-
     return $response->withHeader('Content-Type', 'application/json');
 });
 
@@ -126,7 +125,6 @@ $app->post('/add_facility', function (Request $request, Response $response) {
     $data = array ("facility_id" => $facility_id);
     $payload = json_encode($data);
     $response->getBody()->write($payload);
-
     return $response->withHeader('Content-Type', 'application/json');
 });
 
@@ -149,7 +147,6 @@ $app->get('/get_all_facilities', function (Request $request, Response $response)
     
     $payload = json_encode($all_facilities);
     $response->getBody()->write($payload);
-
     return $response->withHeader('Content-Type', 'application/json');
 });
 
@@ -169,7 +166,6 @@ $app->get('/get_class_schedule_form_data', function (Request $request, Response 
     
     $payload = json_encode($data);
     $response->getBody()->write($payload);
-
     return $response->withHeader('Content-Type', 'application/json');
 });
 
@@ -216,6 +212,17 @@ $app->post('/add_class_schedule', function (Request $request, Response $response
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     } 
+});
+
+$app->get('/get_class_schedules/{program_id}', function (Request $request, Response $response, array $args) {
+    $program_id = $args["program_id"];
+
+    $class_schedule_model = new ClassSchedule();
+    $class_schedules = $class_schedule_model->fetchAll("program_id=" . $program_id);
+    
+    $payload = json_encode($class_schedules);
+    $response->getBody()->write($payload);
+    return $response->withHeader('Content-Type', 'application/json');
 });
 
 $app->run();

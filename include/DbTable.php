@@ -1,18 +1,10 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 require_once dirname(__FILE__) . '/DbConnect.php';
 
 class DbTable {
     protected $conn;
     protected $table;
-
-    // Creating Sale
     
     public function connect() {
         $db = new DbConnect();
@@ -20,8 +12,11 @@ class DbTable {
     }
     
     public function fetchAll($where = null) {  
-        $this->connect();        
-        $sql = "SELECT * FROM $this->table";
+        $this->connect(); 
+        $sql = "SELECT * FROM $this->table";       
+        if($where != null){
+            $sql = $sql . " where " . $where;
+        }
         $query = $this->conn->query($sql);
         $data = array();
         while($row = $query->fetch_array(MYSQLI_ASSOC)) {
