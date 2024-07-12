@@ -19,7 +19,7 @@ $app->addRoutingMiddleware();
 
 $app->addErrorMiddleware(true, true, true);
 
-$app->setBasePath('/smart-navigation-api');
+// $app->setBasePath('/smart-navigation-api');
 
 $app->post('/register_user', function (Request $request, Response $response) {
     $request_body = $request->getParsedBody();
