@@ -108,7 +108,7 @@ $app->post('/add_facility', function (Request $request, Response $response) {
     }
 
     if($image!=null){
-        $image_location = "images/facility_" . $facility_id . ".txt";
+        $image_location = "images/facility_$facility_id.txt";
         $file = fopen($image_location, "w");
         if(!$file) {
             $response->withStatus(422, "Adding facility failed!");
@@ -179,7 +179,7 @@ $app->post('/add_class_schedule', function (Request $request, Response $response
     $time = $request_body["time"];
 
     $program_model = new Program();
-    $program = $program_model->getProgram($program_name);
+    $program = $program_model->getProgram($department_id, $program_name);
     if(!$program){
         $program_data = array(
             "department_id" => $department_id,
@@ -218,7 +218,7 @@ $app->get('/get_class_schedules/{program_id}', function (Request $request, Respo
     $program_id = $args["program_id"];
 
     $class_schedule_model = new ClassSchedule();
-    $class_schedules = $class_schedule_model->fetchAll("program_id=" . $program_id);
+    $class_schedules = $class_schedule_model->fetchAll("program_id=$program_id");
     
     $payload = json_encode($class_schedules);
     $response->getBody()->write($payload);

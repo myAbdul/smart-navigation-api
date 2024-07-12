@@ -9,11 +9,11 @@ class Program extends DbTable
         $this->table = 'program';
     }
 
-    function getProgram($name)
+    function getProgram($department_id, $name)
     {
         $this->connect();
 
-        $sql = "SELECT * FROM $this->table WHERE name = '$name'";
+        $sql = "SELECT * FROM $this->table WHERE department_id = $department_id and name = '$name'";
         $query = $this->conn->query($sql);
         if (!$query) {
             $row = null;
