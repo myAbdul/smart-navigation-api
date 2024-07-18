@@ -10,6 +10,8 @@ require_once 'include/models/College.php';
 require_once 'include/models/Department.php';
 require_once 'include/models/Program.php';
 require_once 'include/models/ClassSchedule.php';
+require_once 'include/models/CampusEvent.php';
+require_once 'include/models/Level.php';
 
 $app = AppFactory::create();
 
@@ -19,7 +21,7 @@ $app->addRoutingMiddleware();
 
 $app->addErrorMiddleware(true, true, true);
 
-// $app->setBasePath('/smart-navigation-api');
+$app->setBasePath('/smart-navigation-api');
 
 $app->post('/register_user', function (Request $request, Response $response) {
     $request_body = $request->getParsedBody();
@@ -154,14 +156,17 @@ $app->get('/get_class_schedule_form_data', function (Request $request, Response 
     $college_model = new College();
     $department_model = new Department();
     $program_model = new Program();
+    $level_model = new Level();
 
     $all_colleges = $college_model->fetchAll();
     $all_departments = $department_model->fetchAll();
     $all_programs = $program_model->fetchAll();
+    $all_levels = $level_model->fetchAll();
     $data = array (
         "all_colleges" => $all_colleges,
         "all_departments" => $all_departments,
-        "all_programs" => $all_programs
+        "all_programs" => $all_programs,
+        "all_levels" => $all_levels
     );
     
     $payload = json_encode($data);
@@ -174,9 +179,11 @@ $app->post('/add_class_schedule', function (Request $request, Response $response
 
     $department_id = $request_body["department_id"];
     $program_name = $request_body["program_name"];
+    $level_id = $request_body["level_id"];
     $course_name = $request_body["course_name"];
     $day = $request_body["day"];
     $time = $request_body["time"];
+    $user_id = $request_body["user_id"];
 
     $program_model = new Program();
     $program = $program_model->getProgram($department_id, $program_name);
@@ -198,9 +205,11 @@ $app->post('/add_class_schedule', function (Request $request, Response $response
     $class_schedule_model = new ClassSchedule();
     $class_schedule_data = array(
         "program_id" => $program_id,
+        "level_id" => $level_id,
         "course_name" => $course_name,
         "day" => $day,
         "time" => $time,
+        "user_id" => $user_id,
         "date_created" => $date_created
     );
 
@@ -214,13 +223,54 @@ $app->post('/add_class_schedule', function (Request $request, Response $response
     } 
 });
 
-$app->get('/get_class_schedules/{program_id}', function (Request $request, Response $response, array $args) {
-    $program_id = $args["program_id"];
+$app->get('/get_class_schedules', function (Request $request, Response $response, array $args) {
+    $queryParams = $request->getQueryParams();
+    $program_id = $queryParams["program_id"];
+    $level_id = $queryParams["level_id"];
 
     $class_schedule_model = new ClassSchedule();
-    $class_schedules = $class_schedule_model->fetchAll("program_id=$program_id");
+    $class_schedules = $class_schedule_model->fetchAll("program_id=$program_id and level_id=$level_id");
     
     $payload = json_encode($class_schedules);
+    $response->getBody()->write($payload);
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->post('/add_campus_event', function (Request $request, Response $response) {
+    $request_body = $request->getParsedBody();
+
+    $name = $request_body["name"];
+    $date = $request_body["date"];
+    $time = $request_body["time"];
+    $facility_id = $request_body["facility_id"];
+    $user_id = $request_body["user_id"];
+
+    $date_created = date("Y-m-d H:i:s");
+    $campus_event_model = new CampusEvent();
+    $data = array(
+        "name" => $name,
+        "date" => $date,
+        "time" => $time,
+        "facility_id" => $facility_id,
+        "user_id" => $user_id,
+        "date_created" => $date_created
+    );
+
+    $campus_event_id = $campus_event_model->insertSingle($data); 
+    if ($campus_event_id == 0) {
+        return $response->withStatus(401, "Adding campus event failed!");
+    } else {
+        $payload = json_encode(array("campus_event_id" => $campus_event_id));
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    } 
+});
+
+$app->get('/get_campus_events', function (Request $request, Response $response, array $args) {
+    $campus_event_model = new CampusEvent();
+    $campus_events = $campus_event_model->getCampusEvents();
+    
+    $payload = json_encode($campus_events);
     $response->getBody()->write($payload);
     return $response->withHeader('Content-Type', 'application/json');
 });
